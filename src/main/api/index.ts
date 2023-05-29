@@ -1,12 +1,14 @@
-import '../config/module-alias';
-import { PersonController, type Speaker } from '@/application/controllers';
+import express from 'express';
 
-class Server {
-  init(speaker: Speaker): void {
-    console.log(speaker.speak('John Doe'));
-    console.log(speaker.speak());
-  }
-}
+const app = express();
 
-const server = new Server();
-server.init(new PersonController());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.get('/', (_, res) => {
+  res.send('Hello World!');
+});
+
+app.listen(3000 || process.env.PORT, () => {
+  console.log('Server started on port 3000!');
+});
