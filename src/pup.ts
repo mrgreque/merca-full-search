@@ -1,12 +1,13 @@
 import puppeteer, { Page } from 'puppeteer';
 import { ZipCodeValidation } from './zipcode-validation';
+import fs from 'fs';
 
 async function clickButton(page: Page, selector: string) {
   return await Promise.all([page.waitForNavigation(), page.click(selector)]);
 }
 
 (async () => {
-  const search = 'palio 2006';
+  const search = 'furadeira';
 
   const zipcode = '14061130';
   const zipcodevalidation = new ZipCodeValidation();
@@ -103,14 +104,51 @@ async function clickButton(page: Page, selector: string) {
                 },
               );
 
+              const link = await item.$eval('.shops__items-group > a', (item) => {
+                return item.getAttribute('href');
+              });
+
+              const imageSrc = await item.$eval(
+                // '.ui-search-result__image > a > div > div > div > div > div > img',
+                '.ui-search-result__image > section > div > div > div > div > a > img',
+                (item) => {
+                  return item.getAttribute('src');
+                },
+              );
+
+              const imageDataSrc = await item.$eval(
+                // '.ui-search-result__image > a > div > div > div > div > div > img',
+                '.ui-search-result__image > section > div > div > div > div > a > img',
+                (item) => {
+                  return item.getAttribute('data-src');
+                },
+              );
+
+              // const image2 = await item.$eval(
+              //   // '.ui-search-result__image > a > div > div > div > div > div > img',
+              //   '.ui-search-result__image > section > div > div > div > div > a > img',
+              //   (item) => {
+              //     return item.outerHTML.split('data-src="')[1].split('"')[0];
+              //   },
+              // );
+
               return {
-                title: internalTitle,
-                price: internalPrice,
+                title: internalTitle ? internalTitle : 'Sem título',
+                price: internalPrice ? internalPrice : '0 reais',
+                link: link ? link : 'Sem link',
+                imageSrc: imageSrc ? imageSrc : 'Sem imagem',
+                imageDataSrc: imageDataSrc ? imageDataSrc : 'Sem imagem',
               };
             }),
           );
 
-          return { ...items };
+          // return items.sort((a, b) => {
+          //   const priceA = a.price;
+          //   const priceB = b.price;
+
+          //   return parseInt(priceA) - parseInt(priceB);
+          // });
+          return items;
         }),
       );
 
@@ -128,7 +166,10 @@ async function clickButton(page: Page, selector: string) {
         console.log('Não foi possível pegar a paginação');
       }
 
-      console.log(JSON.stringify(items));
+      console.log(JSON.stringify(items[0]));
+      console.log(items[0][0].imageDataSrc);
+      console.log(items[0][0].imageSrc);
+      await page.goto(items[0][5].imageDataSrc);
     } catch (error) {
       console.log(error);
     }
